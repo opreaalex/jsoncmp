@@ -19,35 +19,24 @@ func main() {
 		panic(err)
 	}
 
-	jsonInfoArr := make([]jsonInfo, 0, len(fileNames))
-	for _, fileName := range fileNames {
-		fileBytes, err := ioutil.ReadFile(fileName)
-		if err != nil {
-			panic(err)
-		}
+	// Read the JSON from the file into maps
+	fstJsonMap := getJsonMap(fileNames[0])
+	secJsonMap := getJsonMap(fileNames[1])
 
-		var jsonMap map[string]interface{}
-		err = json.Unmarshal(fileBytes, &jsonMap)
-		if err != nil {
-			panic(err)
-		}
+	// Get get root keys from the JSON maps
+	fstJsonKeys := getKeys(fstJsonMap)
+	secJsonKeys := getKeys(secJsonMap)
 
-		ji := jsonInfo{
-			fileName: fileName,
-			jsonMap: jsonMap,
-		}
+	// Find out the difference between the keys
+	fstDiffs := getDifferentBetween(fstJsonKeys, secJsonKeys)
+	secDiffs := getDifferentBetween(secJsonKeys, fstJsonKeys)
 
-		jsonInfoArr = append(jsonInfoArr, ji)
-	}
+	// Print the results
+	fmt.Print(fmt.Sprintf("File %s: ", fileNames[0]))
+	fmt.Println(fstDiffs)
 
-	keys := getKeys(jsonInfoArr)
-	for k, v := range keys {
-		fmt.Println(fmt.Sprint("For the file %s, we jave the keys: ", k))
-		for _, field := range v {
-			fmt.Println(field)
-		}
-		fmt.Println("----------")
-	}
+	fmt.Print(fmt.Sprintf("File %s: ", fileNames[1]))
+	fmt.Println(secDiffs)
 }
 
 func getInputFileNames() ([]string, error) {
@@ -59,15 +48,40 @@ func getInputFileNames() ([]string, error) {
 	return args, nil
 }
 
-func getKeys(jsonInfoArr []jsonInfo) map[string][]string {
-	keyMap := make(map[string][]string)
-	for _, ji := range jsonInfoArr {
-		length := len(ji.jsonMap)
-		keys := make([]string, 0, length)
-		for key, _ := range ji.jsonMap {
-			keys = append(keys, key)
-		}
-		keyMap[ji.fileName] = keys
+func getJsonMap(fileName string) map[string]interface{} {
+	fileBytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		panic(err)
 	}
-	return keyMap
+	var jsonMap map[string]interface{}
+	err = json.Unmarshal(fileBytes, &jsonMap)
+	if err != nil {
+		panic(err)
+	}
+	return jsonMap
+}
+
+func getKeys(jsonMap map[string]interface{}) []string {
+	keys := make([]string, 0, len(jsonMap))
+	for jsonKey, _ := range jsonMap {
+		keys = append(keys, jsonKey)
+	}
+	return keys
+}
+
+func getDifferentBetween(first []string, second []string) []string {
+	diff := make([]string, 0, len(first))
+	for _, a := range first {
+		found := false
+		for _, b := range second {
+			if a == b {
+				found = true
+				break
+			}
+		}
+		if !found {
+			diff = append(diff, a)
+		}
+	}
+	return diff
 }
