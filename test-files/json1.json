@@ -1,3 +1,6 @@
 {
+  "from": "Alex",
+  "to": "Juliet",
+  "subject": "Hello",
   "message": "Hello, from JSON 1"
 }

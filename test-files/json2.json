@@ -1,3 +1,5 @@
 {
-  "message": "Hello, from JSON 2"
+  "from": "Alex",
+  "message": "Hello, from JSON 2",
+  "extra": "We can do this"
 }
