@@ -1,5 +1,8 @@
 {
   "from": "Alex",
   "message": "Hello, from JSON 2",
-  "extra": "We can do this"
+  "extra": "We can do this",
+  "payload": {
+  	"hash": "abcdef"
+  }
 }

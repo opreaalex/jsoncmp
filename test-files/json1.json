@@ -2,5 +2,9 @@
   "from": "Alex",
   "to": "Juliet",
   "subject": "Hello",
-  "message": "Hello, from JSON 1"
+  "message": "Hello, from JSON 1",
+  "payload": {
+  	"id": 1,
+	"value": 100
+  }
 }
