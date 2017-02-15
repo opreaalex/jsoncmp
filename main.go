@@ -14,38 +14,34 @@ type jsonInfo struct {
 }
 
 func main() {
-	fileNames, err := getInputFileNames()
-	if err != nil {
-		panic(err)
-	}
+	aFileName, bFileName := getInputFileNames()
 
 	// Read the JSON from the file into maps
-	fstJsonMap := getJsonMap(fileNames[0])
-	secJsonMap := getJsonMap(fileNames[1])
+	aJsonMap := getJsonMap(aFileName)
+	bJsonMap := getJsonMap(bFileName)
 
-	// Get get root keys from the JSON maps
-	fstJsonKeys := getKeys(fstJsonMap)
-	secJsonKeys := getKeys(secJsonMap)
+	// Get the diff maps
+	// Compare the first json with the second
+	// And compare the second with the first
+	aDiffMap := getDiffMap(aJsonMap, bJsonMap)
+	bDiffMap := getDiffMap(bJsonMap, aJsonMap)
 
-	// Find out the difference between the keys
-	fstDiffs := getDifferentBetween(fstJsonKeys, secJsonKeys)
-	secDiffs := getDifferentBetween(secJsonKeys, fstJsonKeys)
+	// Construct the result JSON
+	resultJsonMap := make(map[string]interface{})
+	resultJsonMap[aFileName] = aDiffMap
+	resultJsonMap[bFileName] = bDiffMap
+	resultJson := getJsonString(resultJsonMap)
 
-	// Print the results
-	fmt.Print(fmt.Sprintf("File %s: ", fileNames[0]))
-	fmt.Println(fstDiffs)
-
-	fmt.Print(fmt.Sprintf("File %s: ", fileNames[1]))
-	fmt.Println(secDiffs)
+	// Print the result
+	fmt.Println(resultJson)
 }
 
-func getInputFileNames() ([]string, error) {
-	// Exclude the runnable argument
-	args := os.Args[1:]
+func getInputFileNames() (string, string) {
+	args := os.Args[1:] // Exclude de runnable argument
 	if len(args) != 2 {
-		return nil, errors.New("You must provide two files")
+		panic(errors.New("You must provide two files"))
 	}
-	return args, nil
+	return args[0], args[1]
 }
 
 func getJsonMap(fileName string) map[string]interface{} {
@@ -61,27 +57,35 @@ func getJsonMap(fileName string) map[string]interface{} {
 	return jsonMap
 }
 
-func getKeys(jsonMap map[string]interface{}) []string {
-	keys := make([]string, 0, len(jsonMap))
-	for jsonKey, _ := range jsonMap {
-		keys = append(keys, jsonKey)
-	}
-	return keys
-}
-
-func getDifferentBetween(first []string, second []string) []string {
-	diff := make([]string, 0, len(first))
-	for _, a := range first {
+func getDiffMap(aMap map[string]interface{}, bMap map[string]interface{}) map[string]interface{} {
+	diff := make(map[string]interface{})
+	for aKey, aVal := range aMap {
 		found := false
-		for _, b := range second {
-			if a == b {
+		for bKey, bVal := range bMap {
+			if aKey == bKey {
 				found = true
+				aInnerMap, aIsInnerMap := aVal.(map[string]interface{})
+				bInnerMap, bIsInnerMap := bVal.(map[string]interface{})
+				if aIsInnerMap && bIsInnerMap {
+					innerDiff := getDiffMap(aInnerMap, bInnerMap)
+					if len(innerDiff) > 0 {
+						diff[aKey] = innerDiff
+					}
+				}
 				break
 			}
 		}
 		if !found {
-			diff = append(diff, a)
+			diff[aKey] = aVal
 		}
 	}
 	return diff
+}
+
+func getJsonString(jsonMap map[string]interface{}) string {
+	jsonBytes, err := json.MarshalIndent(jsonMap, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return string(jsonBytes)
 }
