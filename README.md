@@ -19,7 +19,7 @@ wget -P $HOME/.local/bin https://github.com/opreaalex/jsoncmp/releases/download/
 
 export PATH=$PATH:/$HOME/.local/bin/
 
-chmod u+x export $HOME/.local/bin/jsoncmp
+chmod u+x $HOME/.local/bin/jsoncmp
 
 jsoncmp <your_first_json_file> <your_second_json_file>
 ```
